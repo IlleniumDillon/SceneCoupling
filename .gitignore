@@ -1,0 +1,27 @@
+# Compiled object files
+*.o
+*.obj
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+
+# Compiled executables
+*.exe
+*.out
+
+# Build directories
+build/
+bin/
+
+# IDE-specific files and directories
+.vscode/
+.idea/
+
+# Dependency directories
+lib/
+vendor/
+
+# Generated files
+Makefile
+CMakeLists.txt.user
