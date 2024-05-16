@@ -122,3 +122,75 @@ void OccupancyGridMap::setOrigin(double x, double y)
 {
     this->origin = Eigen::Vector2d(x, y);
 }
+
+
+bool OccupancyGridMap::checkIntersect(Eigen::Vector2d a, Eigen::Vector2d b, Eigen::Vector2d c, Eigen::Vector2d d)
+{
+    if(
+        std::max(c.x(), d.x()) < std::min(a.x(), b.x()) || 
+        std::max(a.x(), b.x()) < std::min(c.x(), d.x()) || 
+        std::max(c.y(), d.y()) < std::min(a.y(), b.y()) || 
+        std::max(a.y(), b.y()) < std::min(c.y(), d.y())) 
+    {
+        return false;
+    }
+
+    auto cross = [](Eigen::Vector2d a, Eigen::Vector2d b) -> double
+    {
+        return a.x() * b.y() - a.y() * b.x();
+    };
+
+    if (cross(a - d, c - d) * cross(b - d, c - d) > 0 ||
+        cross(d - b, a - b) * cross(c - b, a - b) > 0) 
+    {
+        return  false;
+    }
+
+
+    return true;
+}
+
+void OccupancyGridMap::polygon(const std::vector<Eigen::Vector2d> &vertices)
+{
+    std::vector<Eigen::Vector2i> polygonVertices;
+    for (auto &vertex : vertices)
+    {
+        polygonVertices.push_back(Eigen::Vector2i((vertex.x() - this->origin.x()) / this->resolution, (vertex.y() - this->origin.y()) / this->resolution));
+    }
+
+    int minX = INT_MAX, minY = INT_MAX, maxX = INT_MIN, maxY = INT_MIN;
+    for (auto &vertex : polygonVertices)
+    {
+        minX = std::min(minX, vertex.x());
+        minY = std::min(minY, vertex.y());
+        maxX = std::max(maxX, vertex.x());
+        maxY = std::max(maxY, vertex.y());
+    }
+
+    for (int i = minY; i <= maxY; i++)
+    {
+        for (int j = minX; j <= maxX; j++)
+        {
+            if (i < 0 || i >= this->indexHeight || j < 0 || j >= this->indexWidth)
+            {
+                continue;
+            }
+
+            Eigen::Vector2d point(j * this->resolution + this->origin.x(), i * this->resolution + this->origin.y());
+            bool inside = false;
+            for (int k = 0; k < polygonVertices.size(); k++)
+            {
+                Eigen::Vector2d a = vertices[k];
+                Eigen::Vector2d b = vertices[(k + 1) % polygonVertices.size()];
+                if (checkIntersect(a, b, point, Eigen::Vector2d(maxX, point.y())))
+                {
+                    inside = !inside;
+                }
+            }
+            if (inside)
+            {
+                this->map[i][j] = 1;
+            }
+        }
+    }
+}

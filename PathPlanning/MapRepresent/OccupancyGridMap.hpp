@@ -25,6 +25,15 @@ public:
     int indexHeight; //the number of cells in the height of the map (rows, vertical)
 
     uint8_t** map; //the map itself, a 2D array of uint8_t values
+
+public:
+    bool checkIntersect(
+        Eigen::Vector2d a,
+        Eigen::Vector2d b,
+        Eigen::Vector2d c,
+        Eigen::Vector2d d
+    );
+    void polygon(const std::vector<Eigen::Vector2d>& vertices);
 };
 
 #endif // OCCUPANCYGRIDMAP_HPP

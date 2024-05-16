@@ -16,12 +16,14 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/MapRepresent/
     ${CMAKE_SOURCE_DIR}/PathPlan/
     ${CMAKE_SOURCE_DIR}/Visualize/
+    ${CMAKE_SOURCE_DIR}/SceneRepresent/
 )
 
 # Add the source files
 file(GLOB MapRepresent_SRC ${CMAKE_SOURCE_DIR}/MapRepresent/*.cpp)
 file(GLOB PathPlan_SRC ${CMAKE_SOURCE_DIR}/PathPlan/*.cpp)
 file(GLOB Visualize_SRC ${CMAKE_SOURCE_DIR}/Visualize/*.cpp)
+file(GLOB SceneRepresent_SRC ${CMAKE_SOURCE_DIR}/SceneRepresent/*.cpp)
 
 # Add the executable target
 add_executable(
@@ -30,6 +32,7 @@ add_executable(
     ${MapRepresent_SRC}
     ${PathPlan_SRC}
     ${Visualize_SRC}
+    ${SceneRepresent_SRC}
 )
 
 # Link the libraries
