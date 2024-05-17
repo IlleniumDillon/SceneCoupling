@@ -36,6 +36,22 @@ public:
     std::vector<Eigen::Vector2d> currentVertices; // the vertices of the object(when oriented at orientation and positioned at position)
 };
 
+/// full control veicle
+class UVObject
+{
+public:
+    UVObject(std::string name);
+    UVObject(std::string name, const Eigen::Vector2d& position, double orientation);
+
+    void actionMove(const Eigen::Vector2d& translation);
+    void actionMoveObj(const Eigen::Vector2d& translation, SceneObject& object);
+
+public:
+    std::string name;
+    Eigen::Vector2d position;
+    double orientation;
+};
+
 class Scene
 {
 public:
@@ -51,6 +67,7 @@ public:
     void generateMap(OccupancyGridMap& map, double resolution);
 public:
     std::vector<SceneObject> objects;
+    std::vector<UVObject> uvObjects;
     double width;
     double height;
     Eigen::Vector2d origin;

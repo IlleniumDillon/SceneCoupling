@@ -60,7 +60,6 @@ Scene::Scene()
     this->height = 0;
     this->width = 0;
     this->origin = Eigen::Vector2d(0, 0);
-    objects.clear();
 }
 
 Scene::Scene(std::string filename)
@@ -98,4 +97,29 @@ void Scene::generateMap(OccupancyGridMap &map, double resolution = 0.05)
         // polygonize the object
         map.polygon(object.currentVertices);
     }
+}
+
+UVObject::UVObject(std::string name)
+{
+    this->name = name;
+    position = Eigen::Vector2d(0, 0);
+    orientation = 0;
+}
+
+UVObject::UVObject(std::string name, const Eigen::Vector2d &position, double orientation)
+{
+    this->name = name;
+    this->position = position;
+    this->orientation = orientation;
+}
+
+void UVObject::actionMove(const Eigen::Vector2d &translation)
+{
+    position += translation;
+}
+
+void UVObject::actionMoveObj(const Eigen::Vector2d &translation, SceneObject &object)
+{
+    position += translation;
+    object.translate(translation);
 }
