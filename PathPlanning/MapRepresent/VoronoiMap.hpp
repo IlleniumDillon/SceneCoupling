@@ -22,7 +22,7 @@ class VoronoiMap    : public MapObject
 public:
     VoronoiMap();
     VoronoiMap(const VoronoiMap& other);
-    VoronoiMap(const OccupancyGridMap& map);
+    VoronoiMap(OccupancyGridMap& map);
     VoronoiMap& operator=(const VoronoiMap& other);
     ~VoronoiMap();
     
@@ -30,6 +30,8 @@ public:
     std::vector<vertexPtr> vertices; // the vertices of the Voronoi diagram
 
 private:
+    int delicateAndCount(int** delicateMap, OccupancyGridMap& map);
+    int getBackBone(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
 };
 
 #endif // VORONOIMAP_HPP

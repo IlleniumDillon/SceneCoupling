@@ -17,6 +17,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/PathPlan/
     ${CMAKE_SOURCE_DIR}/Visualize/
     ${CMAKE_SOURCE_DIR}/SceneRepresent/
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/include/
 )
 
 # Add the source files
@@ -24,6 +25,14 @@ file(GLOB MapRepresent_SRC ${CMAKE_SOURCE_DIR}/MapRepresent/*.cpp)
 file(GLOB PathPlan_SRC ${CMAKE_SOURCE_DIR}/PathPlan/*.cpp)
 file(GLOB Visualize_SRC ${CMAKE_SOURCE_DIR}/Visualize/*.cpp)
 file(GLOB SceneRepresent_SRC ${CMAKE_SOURCE_DIR}/SceneRepresent/*.cpp)
+set(
+    JSONCPP_SRC
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_reader.cpp
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_value.cpp
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_writer.cpp
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_tool.h
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_valueiterator.inl
+)
 
 # Add the executable target
 add_executable(
@@ -33,6 +42,7 @@ add_executable(
     ${PathPlan_SRC}
     ${Visualize_SRC}
     ${SceneRepresent_SRC}
+    ${JSONCPP_SRC}
 )
 
 # Link the libraries

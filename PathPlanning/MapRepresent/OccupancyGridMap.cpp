@@ -167,27 +167,27 @@ void OccupancyGridMap::polygon(const std::vector<Eigen::Vector2d> &vertices)
         maxY = std::max(maxY, vertex.y());
     }
 
-    for (int i = minY; i <= maxY; i++)
+    for (int i = minY - 1; i <= maxY + 1; i++)
     {
-        for (int j = minX; j <= maxX; j++)
+        for (int j = minX - 1; j <= maxX + 1; j++)
         {
             if (i < 0 || i >= this->indexHeight || j < 0 || j >= this->indexWidth)
             {
                 continue;
             }
 
-            Eigen::Vector2d point(j * this->resolution + this->origin.x(), i * this->resolution + this->origin.y());
-            bool inside = false;
+            Eigen::Vector2d point((j+0.14) * this->resolution + this->origin.x(), (i+0.14) * this->resolution + this->origin.y());
+            int cross = 0;
             for (int k = 0; k < polygonVertices.size(); k++)
             {
                 Eigen::Vector2d a = vertices[k];
                 Eigen::Vector2d b = vertices[(k + 1) % polygonVertices.size()];
-                if (checkIntersect(a, b, point, Eigen::Vector2d(maxX, point.y())))
+                if (checkIntersect(a, b, point, Eigen::Vector2d(maxX + 1, point.y())))
                 {
-                    inside = !inside;
+                    cross++;
                 }
             }
-            if (inside)
+            if (cross % 2 == 1)
             {
                 this->map[i][j] = 1;
             }
