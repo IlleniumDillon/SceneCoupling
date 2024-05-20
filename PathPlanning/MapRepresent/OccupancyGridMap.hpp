@@ -33,7 +33,7 @@ public:
         Eigen::Vector2d c,
         Eigen::Vector2d d
     );
-    void polygon(const std::vector<Eigen::Vector2d>& vertices);
+    void polygon(const std::vector<Eigen::Vector2d>& vertices, uint8_t value = 1);
 };
 
 #endif // OCCUPANCYGRIDMAP_HPP

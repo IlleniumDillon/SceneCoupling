@@ -4,6 +4,9 @@
 #include "MapObject.hpp"
 
 #include "OccupancyGridMap.hpp"
+#include "SceneRepresent.hpp"
+
+#define PREVIEW_FLAG 0
 
 class vertex;
 
@@ -22,6 +25,7 @@ class VoronoiMap    : public MapObject
 public:
     VoronoiMap();
     VoronoiMap(const VoronoiMap& other);
+    //VoronoiMap(const Scene& scene);
     VoronoiMap(OccupancyGridMap& map);
     VoronoiMap& operator=(const VoronoiMap& other);
     ~VoronoiMap();
@@ -32,6 +36,7 @@ public:
 private:
     int delicateAndCount(int** delicateMap, OccupancyGridMap& map);
     int getBackBone(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
+    int generateVertices(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
 };
 
 #endif // VORONOIMAP_HPP

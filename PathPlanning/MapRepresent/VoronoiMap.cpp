@@ -10,6 +10,10 @@ VoronoiMap::VoronoiMap(const VoronoiMap &other)
     this->vertices = other.vertices;
 }
 
+// VoronoiMap::VoronoiMap(const Scene &scene)
+// {
+// }
+
 VoronoiMap::VoronoiMap(OccupancyGridMap &map)
 {
     int **delicateMap = new int *[map.indexHeight];
@@ -26,19 +30,48 @@ VoronoiMap::VoronoiMap(OccupancyGridMap &map)
     }
     /// step 1: delicat the map till no more dilation is needed
     int count = delicateAndCount(delicateMap, map);
-    // cv::Mat img = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC1);
-    // for (int i = 0; i < map.indexHeight; i++)
-    // {
-    //     for (int j = 0; j < map.indexWidth; j++)
-    //     {
-    //         img.at<uchar>(i, j) = delicateMap[i][j];
-    //     }
-    // }
-    // cv::imshow("delicate", img);
-    // cv::waitKey(0);
+
+#if PREVIEW_FLAG
+    cv::Mat img_step1 = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC1);
+    for (int i = 0; i < map.indexHeight; i++)
+    {
+        for (int j = 0; j < map.indexWidth; j++)
+        {
+            img_step1.at<uchar>(i, j) = delicateMap[i][j];
+        }
+    }
+    cv::imshow("delicate", img_step1);
+    cv::waitKey(0);
+#endif
+
     /// step 2: mark all local maximums as vertices
     std::vector<Eigen::Vector2i> backBone;
     getBackBone(delicateMap, map, backBone);
+
+#if PREVIEW_FLAG
+    cv::Mat img_step2 = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC3);
+    for (int i = 0; i < map.indexHeight; i++)
+    {
+        for (int j = 0; j < map.indexWidth; j++)
+        {
+            if (map(j, i) == 0)
+            {
+                img_step2.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 255, 255);
+            }
+            else
+            {
+                img_step2.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
+            }
+        }
+    }
+    for (int i = 0; i < backBone.size(); i++)
+    {
+        img_step2.at<cv::Vec3b>(backBone[i](1), backBone[i](0)) = cv::Vec3b(0, 0, 255);
+    }
+    cv::imshow("backBone", img_step2);
+    cv::waitKey(0);
+#endif
+
     /// step 3: simplify the vertices and link them with edges
 
     /// step 4: generate the Voronoi diagram
@@ -180,18 +213,36 @@ int VoronoiMap::getBackBone(int **delicateMap, OccupancyGridMap &map, std::vecto
 {
     auto checkIsBackBone = [](int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8) -> bool {
         /// test 1
-        if (
-            // ((p4 > p0 && p4 > p1 && p4 > p3) && (p4 <= p5 && p4 <= p7 && p4 <= p8)) ||
-            // ((p4 <= p0 && p4 <= p1 && p4 <= p3) && (p4 > p5 && p4 > p7 && p4 > p8)) ||
-            // ((p4 > p1 && p4 > p2 && p4 > p5) && (p4 <= p3 && p4 <= p6 && p4 <= p7)) ||
-            // ((p4 <= p1 && p4 <= p2 && p4 <= p5) && (p4 > p3 && p4 > p6 && p4 > p7)) ||
+        // if (
+        //     ((p4 > p0 && p4 > p1 && p4 > p3) && (p4 <= p5 && p4 <= p7 && p4 <= p8)) ||
+        //     ((p4 <= p0 && p4 <= p1 && p4 <= p3) && (p4 > p5 && p4 > p7 && p4 > p8)) ||
+        //     ((p4 > p1 && p4 > p2 && p4 > p5) && (p4 <= p3 && p4 <= p6 && p4 <= p7)) ||
+        //     ((p4 <= p1 && p4 <= p2 && p4 <= p5) && (p4 > p3 && p4 > p6 && p4 > p7)) ||
 
-            (p4 > p3 && p4 >= p5 && p1 > p0 && p1 >= p2 && p7 >6 && p7 >= p8) ||
-            (p4 > p1 && p4 >= p7 && p3 > p0 && p3 >= p6 && p5 > p2 && p5 >= p8) 
-        )
+        //     (p4 > p3 && p4 >= p5 && p1 > p0 && p1 >= p2 && p7 > p6 && p7 >= p8) ||
+        //     (p4 > p1 && p4 >= p7 && p3 > p0 && p3 >= p6 && p5 > p2 && p5 >= p8) 
+        // )
+        // {
+        //     return true;
+        // }
+
+        uint8_t condition_1 = (p4 >= p0 && p4 >= p8) ? 1 : 0;
+        uint8_t condition_2 = (p4 >= p2 && p4 >= p6) ? 1 : 0;
+        uint8_t condition_3 = (p4 >= p1 && p4 >= p7) ? 1 : 0;
+        uint8_t condition_4 = (p4 >= p3 && p4 >= p5) ? 1 : 0;
+
+        uint8_t condition_5 = (p4 > p0 && p4 > p8) ? 2 : 0;
+        uint8_t condition_6 = (p4 > p2 && p4 > p6) ? 2 : 0;
+        uint8_t condition_7 = (p4 > p1 && p4 > p7) ? 2 : 0;
+        uint8_t condition_8 = (p4 > p3 && p4 > p5) ? 2 : 0;
+
+        uint8_t condition = condition_1 + condition_2 + condition_3 + condition_4 + condition_5 + condition_6 + condition_7 + condition_8;
+
+        if (condition >= 4)
         {
             return true;
         }
+
         return false;
     };
 
@@ -218,8 +269,43 @@ int VoronoiMap::getBackBone(int **delicateMap, OccupancyGridMap &map, std::vecto
         }
     }
 
-    cv::imshow("second derivative", img);
-    cv::imwrite("second_derivative.png", img);
-    cv::waitKey(0);
+    /// post processing
+    /// dilate
+    cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::Mat temp1, temp2;
+    cv::morphologyEx(img, img, cv::MORPH_CLOSE, element);
+    //cv::morphologyEx(img, temp2, cv::MORPH_BLACKHAT, element);
+
+    /// copy the result to the backBone
+    backBone.clear();
+    for (int i = 0; i < map.indexHeight; i++)
+    {
+        for (int j = 0; j < map.indexWidth; j++)
+        {
+            if (img.at<uchar>(i, j) != 0)
+            {
+                backBone.push_back(Eigen::Vector2i(j, i));
+            }
+        }
+    }
+
+    // cv::imshow("second derivative", img);
+    // cv::imwrite("second_derivative.png", img);
+    // cv::waitKey(0);
+    return 0;
+}
+
+int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::vector<Eigen::Vector2i> &backBone)
+{
+    /// step 1: generate vertices list from backBone
+    std::vector<vertex> vertices;
+
+    /// step 2: do the following when verices is not empty
+    while (!vertices.empty())
+    {
+        /// step 2-1: find a vertex with only one neighbor and put it into the open list
+       
+        
+    }
     return 0;
 }

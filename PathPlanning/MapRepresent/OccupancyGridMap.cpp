@@ -150,7 +150,7 @@ bool OccupancyGridMap::checkIntersect(Eigen::Vector2d a, Eigen::Vector2d b, Eige
     return true;
 }
 
-void OccupancyGridMap::polygon(const std::vector<Eigen::Vector2d> &vertices)
+void OccupancyGridMap::polygon(const std::vector<Eigen::Vector2d> &vertices, uint8_t value)
 {
     std::vector<Eigen::Vector2i> polygonVertices;
     for (auto &vertex : vertices)
@@ -189,7 +189,7 @@ void OccupancyGridMap::polygon(const std::vector<Eigen::Vector2d> &vertices)
             }
             if (cross % 2 == 1)
             {
-                this->map[i][j] = 1;
+                this->map[i][j] = value;
             }
         }
     }
