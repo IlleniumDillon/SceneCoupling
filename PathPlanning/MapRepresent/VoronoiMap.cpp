@@ -41,6 +41,7 @@ VoronoiMap::VoronoiMap(OccupancyGridMap &map)
         }
     }
     cv::imshow("delicate", img_step1);
+    cv::imwrite("delicate.png", img_step1);
     cv::waitKey(0);
 #endif
 
@@ -73,9 +74,28 @@ VoronoiMap::VoronoiMap(OccupancyGridMap &map)
 #endif
 
     /// step 3: simplify the vertices and link them with edges
-    generateVertices(delicateMap, map, backBone);
+    std::vector<Eigen::Vector2i> verticesList;
+    generateVertices(verticesList, map, backBone);
     /// step 4: generate the Voronoi diagram
-
+    generateGraph(verticesList, map);
+#if PREVIEW_FLAG
+    cv::Mat img_step4 = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC3);
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        for (int j = 0; j < vertices[i]->neighbors.size(); j++)
+        {
+            Eigen::Vector2i start = vertices[i]->position.cast<int>();
+            Eigen::Vector2i end = vertices[i]->neighbors[j]->position.cast<int>();
+            std::vector<Eigen::Vector2i> line = drawLine(start, end);
+            for (int k = 0; k < line.size(); k++)
+            {
+                img_step4.at<cv::Vec3b>(line[k](1), line[k](0)) = cv::Vec3b(255, 255, 255);
+            }
+        }
+    }
+    cv::imshow("graph", img_step4);
+    cv::waitKey(0);
+#endif
     /// step 5: delete the delicate map
     for (int i = 0; i < map.indexHeight; i++)
     {
@@ -265,7 +285,7 @@ int VoronoiMap::getBackBone(int **delicateMap, OccupancyGridMap &map, std::vecto
             int p6 = delicateMap[i + 1][j - 1];
             int p7 = delicateMap[i + 1][j];
             int p8 = delicateMap[i + 1][j + 1];
-            if (checkIsBackBone(p0, p1, p2, p3, p4, p5, p6, p7, p8) && p4 > 10)
+            if (checkIsBackBone(p0, p1, p2, p3, p4, p5, p6, p7, p8) && p4 > CENTER_DISTANCE)
             {
                 backBone.push_back(Eigen::Vector2i(j, i));
                 img.at<uchar>(i, j) = 255;
@@ -292,14 +312,15 @@ int VoronoiMap::getBackBone(int **delicateMap, OccupancyGridMap &map, std::vecto
             }
         }
     }
-
-    // cv::imshow("second derivative", img);
-    // cv::imwrite("second_derivative.png", img);
-    // cv::waitKey(0);
+#if PREVIEW_FLAG
+    cv::imshow("second derivative", img);
+    cv::imwrite("second_derivative.png", img);
+    cv::waitKey(0);
+#endif
     return 0;
 }
 
-int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::vector<Eigen::Vector2i> &backBone)
+int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, OccupancyGridMap &map, std::vector<Eigen::Vector2i> &backBone)
 {
     /// step 1: generate node map from backBone
     VoronoiGridNode **nodeMap = new VoronoiGridNode *[map.indexHeight];
@@ -345,7 +366,7 @@ int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::
     }
 
     /// step 2: do the following till no more vertices can be generated
-    std::vector<Eigen::Vector2i> vertices_temp;
+    std::vector<Eigen::Vector2i> verticesList_temp;
     int backBoneSize = backBone.size();
     std::vector<VoronoiGridNode *> openList;
     while (backBoneSize > 0)
@@ -356,7 +377,7 @@ int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::
         {
             for (int j = 0; j < map.indexWidth; j++)
             {
-                if (nodeMap[i][j].isBackBone && nodeMap[i][j].numOfNeighbors == 1)
+                if (nodeMap[i][j].isBackBone && nodeMap[i][j].numOfNeighbors == 1 && nodeMap[i][j].flag == 0)
                 {
                     nodeMap[i][j].flag = 1;
                     openList.push_back(&nodeMap[i][j]);
@@ -369,6 +390,7 @@ int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::
             }
         }
         /// step 2-2: BFS search
+        // std::vector<Eigen::Vector2i> vertices_temp;
         while (!openList.empty())
         {
             VoronoiGridNode *node = openList.back();
@@ -398,29 +420,42 @@ int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::
                     openList.push_back(&nodeMap[m][n]);
                     if (node->numOfNeighbors == 1 || node->numOfNeighbors != nodeMap[m][n].numOfNeighbors)
                     {
-                        critical = true;
+                        int minDistance = std::numeric_limits<int>::max();
+                        for (int i = 0; i < verticesList_temp.size(); i++)
+                        {
+                            int distance = (verticesList_temp[i] - node->position).norm();
+                            if (distance < minDistance)
+                            {
+                                minDistance = distance;
+                            }
+                        }
+                        if (minDistance > CENTER_DISTANCE)
+                        {
+                            critical = true;
+                        }
                     }
-                    break;
+                    //break;
                 }
             }
             if (critical)
             {
-                vertices_temp.push_back(node->position);
+                verticesList_temp.push_back(node->position);
             }
         }
-        std::cout << "backBoneSize: " << backBoneSize << std::endl;
+        // std::cout << "backBoneSize: " << backBoneSize << std::endl;
     }
 
+#if PREVIEW_FLAG
     cv::Mat img = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC3);
-    for (int i = 0; i < vertices_temp.size(); i++)
+    for (int i = 0; i < verticesList_temp.size(); i++)
     {
-        img.at<cv::Vec3b>(vertices_temp[i](1), vertices_temp[i](0)) = cv::Vec3b(255, 255, 255);
+        img.at<cv::Vec3b>(verticesList_temp[i](1), verticesList_temp[i](0)) = cv::Vec3b(255, 255, 255);
     }
     cv::imshow("vertices", img);
     cv::imwrite("vertices.png", img);
     cv::waitKey(0);
-
-
+#endif
+    verticesList = verticesList_temp;
     /// step 3: delete the node map
     for (int i = 0; i < map.indexHeight; i++)
     {
@@ -428,4 +463,96 @@ int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::
     }
     delete[] nodeMap;
     return 0;
+}
+
+int VoronoiMap::generateGraph(std::vector<Eigen::Vector2i> &verticesList, OccupancyGridMap &map)
+{
+    /// check any two vertices
+    for (int i = 0; i < verticesList.size(); i++)
+    {
+        for (int j = i + 1; j < verticesList.size(); j++)
+        {
+            Eigen::Vector2i start = verticesList[i];
+            Eigen::Vector2i end = verticesList[j];
+            std::vector<Eigen::Vector2i> line = drawLine(start, end);
+            if (checkLineOccupancy(line, map))
+            {
+                continue;
+            }
+            vertexPtr v1 = nullptr;
+            vertexPtr v2 = nullptr;
+            for (int k = 0; k < vertices.size(); k++)
+            {
+                if (vertices[k]->position == start.cast<double>())
+                {
+                    v1 = vertices[k];
+                }
+                if (vertices[k]->position == end.cast<double>())
+                {
+                    v2 = vertices[k];
+                }
+            }
+            if (v1 == nullptr)
+            {
+                v1 = std::make_shared<vertex>();
+                v1->position = start.cast<double>();// * map.resolution + Eigen::Vector2d(map.origin(0), map.origin(1)); 
+                vertices.push_back(v1);
+            }
+            if (v2 == nullptr)
+            {
+                v2 = std::make_shared<vertex>();
+                v2->position = end.cast<double>();// * map.resolution + Eigen::Vector2d(map.origin(0), map.origin(1));
+                vertices.push_back(v2);
+            }
+            v1->neighbors.push_back(v2);
+            v2->neighbors.push_back(v1);
+        }
+    }
+    return 0;
+}
+
+std::vector<Eigen::Vector2i> VoronoiMap::drawLine(Eigen::Vector2i start, Eigen::Vector2i end)
+{
+    std::vector<Eigen::Vector2i> line;
+    int x0 = start(0);
+    int y0 = start(1);
+    int x1 = end(0);
+    int y1 = end(1);
+    int dx = std::abs(x1 - x0);
+    int dy = std::abs(y1 - y0);
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+    int err = dx - dy;
+    while (true)
+    {
+        line.push_back(Eigen::Vector2i(x0, y0));
+        if (x0 == x1 && y0 == y1)
+        {
+            break;
+        }
+        int e2 = 2 * err;
+        if (e2 > -dy)
+        {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
+    return line;
+}
+
+bool VoronoiMap::checkLineOccupancy(std::vector<Eigen::Vector2i> points, OccupancyGridMap &map)
+{
+    for (int i = 0; i < points.size(); i++)
+    {
+        if (map(points[i](0), points[i](1)) == 1)
+        {
+            return true;
+        }
+    }
+    return false;
 }

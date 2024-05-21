@@ -7,6 +7,7 @@
 #include "SceneRepresent.hpp"
 
 #define PREVIEW_FLAG 1
+#define CENTER_DISTANCE 10
 
 class vertex;
 
@@ -63,7 +64,11 @@ private:
 
     int delicateAndCount(int** delicateMap, OccupancyGridMap& map);
     int getBackBone(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
-    int generateVertices(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
+    int generateVertices(std::vector<Eigen::Vector2i>& verticesList, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
+    int generateGraph(std::vector<Eigen::Vector2i>& verticesList, OccupancyGridMap& map);
+
+    std::vector<Eigen::Vector2i> drawLine(Eigen::Vector2i start, Eigen::Vector2i end);
+    bool checkLineOccupancy(std::vector<Eigen::Vector2i> points, OccupancyGridMap& map);
 };
 
 #endif // VORONOIMAP_HPP
