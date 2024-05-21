@@ -73,7 +73,7 @@ VoronoiMap::VoronoiMap(OccupancyGridMap &map)
 #endif
 
     /// step 3: simplify the vertices and link them with edges
-
+    generateVertices(delicateMap, map, backBone);
     /// step 4: generate the Voronoi diagram
 
     /// step 5: delete the delicate map
@@ -174,6 +174,10 @@ int VoronoiMap::delicateAndCount(int **delicateMap, OccupancyGridMap &map)
                             occ++;
                             break;
                         }
+                    }
+                    if (occ != 0)
+                    {
+                        break;
                     }
                 }
                 if (occ != 0)
@@ -297,15 +301,131 @@ int VoronoiMap::getBackBone(int **delicateMap, OccupancyGridMap &map, std::vecto
 
 int VoronoiMap::generateVertices(int **delicateMap, OccupancyGridMap &map, std::vector<Eigen::Vector2i> &backBone)
 {
-    /// step 1: generate vertices list from backBone
-    std::vector<vertex> vertices;
-
-    /// step 2: do the following when verices is not empty
-    while (!vertices.empty())
+    /// step 1: generate node map from backBone
+    VoronoiGridNode **nodeMap = new VoronoiGridNode *[map.indexHeight];
+    for (int i = 0; i < map.indexHeight; i++)
     {
-        /// step 2-1: find a vertex with only one neighbor and put it into the open list
-       
-        
+        nodeMap[i] = new VoronoiGridNode[map.indexWidth];
+        for (int j = 0; j < map.indexWidth; j++)
+        {
+            nodeMap[i][j].position = Eigen::Vector2i(j, i);
+            nodeMap[i][j].flag = 0;
+            nodeMap[i][j].numOfNeighbors = 0;
+            nodeMap[i][j].comeForm = nullptr;
+            nodeMap[i][j].isBackBone = false;
+        }
     }
+    for (int i = 0; i < backBone.size(); i++)
+    {
+        nodeMap[backBone[i](1)][backBone[i](0)].isBackBone = true;
+    }
+    for (int i = 0; i < backBone.size(); i++)
+    {
+        int x = backBone[i](0);
+        int y = backBone[i](1);
+        for (int m = y - 1; m <= y + 1; m++)
+        {
+            for (int n = x - 1; n <= x + 1; n++)
+            {
+                if (m < 0 || m >= map.indexHeight || n < 0 || n >= map.indexWidth)
+                {
+                    continue;
+                }
+                if (m == y && n == x)
+                {
+                    continue;
+                }
+                if (!nodeMap[m][n].isBackBone)
+                {
+                    continue;
+                }
+                nodeMap[m][n].numOfNeighbors++;
+            }
+        }
+    }
+
+    /// step 2: do the following till no more vertices can be generated
+    std::vector<Eigen::Vector2i> vertices_temp;
+    int backBoneSize = backBone.size();
+    std::vector<VoronoiGridNode *> openList;
+    while (backBoneSize > 0)
+    {
+        openList.clear();
+        /// step 2-1: find a vertex with only one neighbor and put it into the open list
+        for (int i = 0; i < map.indexHeight; i++)
+        {
+            for (int j = 0; j < map.indexWidth; j++)
+            {
+                if (nodeMap[i][j].isBackBone && nodeMap[i][j].numOfNeighbors == 1)
+                {
+                    nodeMap[i][j].flag = 1;
+                    openList.push_back(&nodeMap[i][j]);
+                    break;
+                }
+            }
+            if (!openList.empty())
+            {
+                break;
+            }
+        }
+        /// step 2-2: BFS search
+        while (!openList.empty())
+        {
+            VoronoiGridNode *node = openList.back();
+            node->flag = -1;
+            backBoneSize--;
+            openList.pop_back();
+            int x = node->position(0);
+            int y = node->position(1);
+            bool critical = false;
+            for (int m = y - 1; m <= y + 1; m++)
+            {
+                for (int n = x - 1; n <= x + 1; n++)
+                {
+                    if (m < 0 || m >= map.indexHeight || n < 0 || n >= map.indexWidth)
+                    {
+                        continue;
+                    }
+                    if (!nodeMap[m][n].isBackBone)
+                    {
+                        continue;
+                    }
+                    if (nodeMap[m][n].flag != 0)
+                    {
+                        continue;
+                    }
+                    nodeMap[m][n].flag = 1;
+                    openList.push_back(&nodeMap[m][n]);
+                    if (node->numOfNeighbors == 1 || node->numOfNeighbors != nodeMap[m][n].numOfNeighbors)
+                    {
+                        critical = true;
+                    }
+                    break;
+                }
+            }
+            if (critical)
+            {
+                vertices_temp.push_back(node->position);
+            }
+        }
+        std::cout << "backBoneSize: " << backBoneSize << std::endl;
+    }
+
+    cv::Mat img = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC3);
+    for (int i = 0; i < vertices_temp.size(); i++)
+    {
+        img.at<cv::Vec3b>(vertices_temp[i](1), vertices_temp[i](0)) = cv::Vec3b(255, 255, 255);
+    }
+    cv::imshow("vertices", img);
+    cv::imwrite("vertices.png", img);
+    cv::waitKey(0);
+
+
+    /// step 3: delete the node map
+    for (int i = 0; i < map.indexHeight; i++)
+    {
+        delete[] nodeMap[i];
+    }
+    delete[] nodeMap;
     return 0;
 }

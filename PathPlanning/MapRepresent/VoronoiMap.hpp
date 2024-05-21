@@ -6,7 +6,7 @@
 #include "OccupancyGridMap.hpp"
 #include "SceneRepresent.hpp"
 
-#define PREVIEW_FLAG 0
+#define PREVIEW_FLAG 1
 
 class vertex;
 
@@ -34,6 +34,33 @@ public:
     std::vector<vertexPtr> vertices; // the vertices of the Voronoi diagram
 
 private:
+
+    class VoronoiGridNode
+    {
+    public:
+        VoronoiGridNode()
+        {
+            position = Eigen::Vector2i(0, 0);
+            flag = 0;
+            numOfNeighbors = 0;
+            comeForm = nullptr;
+            isBackBone = false;
+        }
+        VoronoiGridNode(int x, int y)
+        {
+            position = Eigen::Vector2i(x, y);
+            flag = 0;
+            numOfNeighbors = 0;
+            comeForm = nullptr;
+            isBackBone = false;
+        }
+        Eigen::Vector2i position;
+        int flag;
+        int numOfNeighbors;
+        VoronoiGridNode* comeForm;
+        bool isBackBone;
+    };
+
     int delicateAndCount(int** delicateMap, OccupancyGridMap& map);
     int getBackBone(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
     int generateVertices(int** delicateMap, OccupancyGridMap& map, std::vector<Eigen::Vector2i>& backBone);
