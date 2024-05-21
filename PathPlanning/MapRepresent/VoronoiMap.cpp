@@ -70,6 +70,7 @@ VoronoiMap::VoronoiMap(OccupancyGridMap &map)
         img_step2.at<cv::Vec3b>(backBone[i](1), backBone[i](0)) = cv::Vec3b(0, 0, 255);
     }
     cv::imshow("backBone", img_step2);
+    cv::imwrite("backBone.png", img_step2);
     cv::waitKey(0);
 #endif
 
@@ -369,6 +370,7 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
     std::vector<Eigen::Vector2i> verticesList_temp;
     int backBoneSize = backBone.size();
     std::vector<VoronoiGridNode *> openList;
+    cv::Mat show = cv::Mat::zeros(map.indexHeight, map.indexWidth, CV_8UC3);
     while (backBoneSize > 0)
     {
         openList.clear();
@@ -380,6 +382,7 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
                 if (nodeMap[i][j].isBackBone && nodeMap[i][j].numOfNeighbors == 1 && nodeMap[i][j].flag == 0)
                 {
                     nodeMap[i][j].flag = 1;
+                    nodeMap[i][j].comeForm = nullptr;
                     openList.push_back(&nodeMap[i][j]);
                     break;
                 }
@@ -391,12 +394,16 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
         }
         /// step 2-2: BFS search
         // std::vector<Eigen::Vector2i> vertices_temp;
+        
         while (!openList.empty())
         {
-            VoronoiGridNode *node = openList.back();
+            // VoronoiGridNode *node = openList.back();
+            VoronoiGridNode *node = openList.front();
             node->flag = -1;
             backBoneSize--;
-            openList.pop_back();
+            // openList.pop_back();
+            openList.erase(openList.begin());
+            show.at<cv::Vec3b>(node->position(1), node->position(0)) = cv::Vec3b(255, 255, 255);
             int x = node->position(0);
             int y = node->position(1);
             bool critical = false;
@@ -417,22 +424,31 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
                         continue;
                     }
                     nodeMap[m][n].flag = 1;
+                    nodeMap[m][n].comeForm = node;
                     openList.push_back(&nodeMap[m][n]);
                     if (node->numOfNeighbors == 1 || node->numOfNeighbors != nodeMap[m][n].numOfNeighbors)
                     {
                         int minDistance = std::numeric_limits<int>::max();
+                        int index = -1;
                         for (int i = 0; i < verticesList_temp.size(); i++)
                         {
                             int distance = (verticesList_temp[i] - node->position).norm();
                             if (distance < minDistance)
                             {
                                 minDistance = distance;
+                                index = i;
                             }
                         }
                         if (minDistance > CENTER_DISTANCE)
                         {
                             critical = true;
                         }
+                        else
+                        {
+                            node->comeForm = &nodeMap[verticesList_temp[index](1)][verticesList_temp[index](0)];
+                            nodeMap[m][n].comeForm = &nodeMap[verticesList_temp[index](1)][verticesList_temp[index](0)];
+                        }
+                        // critical = true;
                     }
                     //break;
                 }
@@ -440,7 +456,40 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
             if (critical)
             {
                 verticesList_temp.push_back(node->position);
+                vertexPtr v = std::make_shared<vertex>();
+                v->position = node->position.cast<double>();
+                VoronoiGridNode *temp = node;
+                vertexPtr comeForm = nullptr;
+                while (temp->comeForm != nullptr)
+                {
+                    temp = temp->comeForm;
+                    for (int i = 0; i < vertices.size(); i++)
+                    {
+                        if (vertices[i]->position == temp->position.cast<double>())
+                        {
+                            comeForm = vertices[i];
+                            break; 
+                        }
+                    }
+                    if (comeForm != nullptr)
+                    {
+                        break;
+                    }
+                }
+                if (comeForm != nullptr)
+                {
+                    v->neighbors.push_back(comeForm);
+                    comeForm->neighbors.push_back(v);
+                    vertices.push_back(v);
+                }
+                else
+                {
+                    vertices.push_back(v);
+                }
             }
+
+            cv::imshow("show", show);
+            cv::waitKey(1);
         }
         // std::cout << "backBoneSize: " << backBoneSize << std::endl;
     }
@@ -450,6 +499,19 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
     for (int i = 0; i < verticesList_temp.size(); i++)
     {
         img.at<cv::Vec3b>(verticesList_temp[i](1), verticesList_temp[i](0)) = cv::Vec3b(255, 255, 255);
+    }
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        for (int j = 0; j < vertices[i]->neighbors.size(); j++)
+        {
+            Eigen::Vector2i start = vertices[i]->position.cast<int>();
+            Eigen::Vector2i end = vertices[i]->neighbors[j]->position.cast<int>();
+            std::vector<Eigen::Vector2i> line = drawLine(start, end);
+            for (int k = 0; k < line.size(); k++)
+            {
+                img.at<cv::Vec3b>(line[k](1), line[k](0)) = cv::Vec3b(255, 255, 255);
+            }
+        }
     }
     cv::imshow("vertices", img);
     cv::imwrite("vertices.png", img);
