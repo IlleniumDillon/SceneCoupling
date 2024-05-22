@@ -401,7 +401,7 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
             VoronoiGridNode *node = openList.front();
             node->flag = -1;
             backBoneSize--;
-            // openList.pop_back();
+            //  openList.pop_back();
             openList.erase(openList.begin());
             show.at<cv::Vec3b>(node->position(1), node->position(0)) = cv::Vec3b(255, 255, 255);
             int x = node->position(0);
@@ -448,7 +448,6 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
                             node->comeForm = &nodeMap[verticesList_temp[index](1)][verticesList_temp[index](0)];
                             nodeMap[m][n].comeForm = &nodeMap[verticesList_temp[index](1)][verticesList_temp[index](0)];
                         }
-                        // critical = true;
                     }
                     //break;
                 }
@@ -456,36 +455,36 @@ int VoronoiMap::generateVertices(std::vector<Eigen::Vector2i>& verticesList, Occ
             if (critical)
             {
                 verticesList_temp.push_back(node->position);
-                vertexPtr v = std::make_shared<vertex>();
-                v->position = node->position.cast<double>();
-                VoronoiGridNode *temp = node;
-                vertexPtr comeForm = nullptr;
-                while (temp->comeForm != nullptr)
-                {
-                    temp = temp->comeForm;
-                    for (int i = 0; i < vertices.size(); i++)
-                    {
-                        if (vertices[i]->position == temp->position.cast<double>())
-                        {
-                            comeForm = vertices[i];
-                            break; 
-                        }
-                    }
-                    if (comeForm != nullptr)
-                    {
-                        break;
-                    }
-                }
-                if (comeForm != nullptr)
-                {
-                    v->neighbors.push_back(comeForm);
-                    comeForm->neighbors.push_back(v);
-                    vertices.push_back(v);
-                }
-                else
-                {
-                    vertices.push_back(v);
-                }
+                // vertexPtr v = std::make_shared<vertex>();
+                // v->position = node->position.cast<double>();
+                // VoronoiGridNode *temp = node;
+                // vertexPtr comeForm = nullptr;
+                // while (temp->comeForm != nullptr)
+                // {
+                //     temp = temp->comeForm;
+                //     for (int i = 0; i < vertices.size(); i++)
+                //     {
+                //         if (vertices[i]->position == temp->position.cast<double>())
+                //         {
+                //             comeForm = vertices[i];
+                //             break; 
+                //         }
+                //     }
+                //     if (comeForm != nullptr)
+                //     {
+                //         break;
+                //     }
+                // }
+                // if (comeForm != nullptr)
+                // {
+                //     v->neighbors.push_back(comeForm);
+                //     comeForm->neighbors.push_back(v);
+                //     vertices.push_back(v);
+                // }
+                // else
+                // {
+                //     vertices.push_back(v);
+                // }
             }
 
             cv::imshow("show", show);
