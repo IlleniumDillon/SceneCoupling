@@ -123,6 +123,105 @@ void OccupancyGridMap::setOrigin(double x, double y)
     this->origin = Eigen::Vector2d(x, y);
 }
 
+void OccupancyGridMap::dilate(int radius)
+{
+    if (radius <= 0)
+    {
+        return;
+    }
+
+    uint8_t **newMap = new uint8_t *[this->indexHeight];
+    for (int i = 0; i < this->indexHeight; i++)
+    {
+        newMap[i] = new uint8_t[this->indexWidth];
+        for (int j = 0; j < this->indexWidth; j++)
+        {
+            newMap[i][j] = this->map[i][j];
+        }
+    }
+
+    for (int i = 0; i < this->indexHeight; i++)
+    {
+        for (int j = 0; j < this->indexWidth; j++)
+        {
+            if (this->map[i][j] == 1)
+            {
+                for (int k = -radius; k <= radius; k++)
+                {
+                    for (int l = -radius; l <= radius; l++)
+                    {
+                        if (i + k < 0 || i + k >= this->indexHeight || j + l < 0 || j + l >= this->indexWidth)
+                        {
+                            continue;
+                        }
+                        if (k * k + l * l <= radius * radius)
+                        {
+                            newMap[i + k][j + l] = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < this->indexHeight; i++)
+    {
+        delete[] this->map[i];
+    }
+    delete[] this->map;
+    this->map = newMap;
+}
+
+OccupancyGridMap OccupancyGridMap::dilate(int radius) const
+{
+    if (radius <= 0)
+    {
+        return *this;
+    }
+
+    OccupancyGridMap newMap;
+    newMap.origin = this->origin;
+    newMap.indexHeight = this->indexHeight;
+    newMap.indexWidth = this->indexWidth;
+    newMap.mapHeight = this->mapHeight;
+    newMap.mapWidth = this->mapWidth;
+    newMap.resolution = this->resolution;
+    newMap.map = new uint8_t *[newMap.indexHeight];
+    for (int i = 0; i < newMap.indexHeight; i++)
+    {
+        newMap.map[i] = new uint8_t[newMap.indexWidth];
+        for (int j = 0; j < newMap.indexWidth; j++)
+        {
+            newMap.map[i][j] = this->map[i][j];
+        }
+    }
+
+    for (int i = 0; i < newMap.indexHeight; i++)
+    {
+        for (int j = 0; j < newMap.indexWidth; j++)
+        {
+            if (this->map[i][j] == 1)
+            {
+                for (int k = -radius; k <= radius; k++)
+                {
+                    for (int l = -radius; l <= radius; l++)
+                    {
+                        if (i + k < 0 || i + k >= newMap.indexHeight || j + l < 0 || j + l >= newMap.indexWidth)
+                        {
+                            continue;
+                        }
+                        if (k * k + l * l <= radius * radius)
+                        {
+                            newMap.map[i + k][j + l] = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return newMap;
+}
 
 bool OccupancyGridMap::checkIntersect(Eigen::Vector2d a, Eigen::Vector2d b, Eigen::Vector2d c, Eigen::Vector2d d)
 {

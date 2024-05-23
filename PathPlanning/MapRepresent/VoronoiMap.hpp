@@ -6,9 +6,6 @@
 #include "OccupancyGridMap.hpp"
 #include "SceneRepresent.hpp"
 
-#define PREVIEW_FLAG 1
-#define CENTER_DISTANCE 10
-
 class vertex;
 
 typedef std::shared_ptr<vertex> vertexPtr;

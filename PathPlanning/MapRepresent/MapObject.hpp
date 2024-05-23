@@ -10,6 +10,9 @@
 #include "opencv2/opencv.hpp"
 #include "eigen3/Eigen/Eigen"
 
+#define PREVIEW_FLAG 1
+#define CENTER_DISTANCE 10
+
 typedef std::vector<Eigen::Vector2d> Path;
 
 class MapObject

@@ -16,6 +16,9 @@ public:
     void setMapSize(double width, double height, double resolution);
     void setOrigin(double x, double y);
 
+    void dilate(int radius = CENTER_DISTANCE);
+    OccupancyGridMap dilate(int radius = CENTER_DISTANCE) const;
+
 public:
     Eigen::Vector2d origin; //the coordinates of the top-left corner of the map
     double resolution; //the size of each cell in the map
@@ -24,6 +27,9 @@ public:
     int indexWidth; //the number of cells in the width of the map   (cols, horizontal)
     int indexHeight; //the number of cells in the height of the map (rows, vertical)
 
+    /// @brief grid value
+    /// 0: free space
+    /// 1: obstacle
     uint8_t** map; //the map itself, a 2D array of uint8_t values
 
 public:
