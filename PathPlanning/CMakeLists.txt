@@ -13,17 +13,15 @@ find_package(Eigen3 REQUIRED)
 
 # Add the include directory
 include_directories(
-    ${CMAKE_SOURCE_DIR}/MapRepresent/
+    ${CMAKE_SOURCE_DIR}/AgentRepresent/
     ${CMAKE_SOURCE_DIR}/PathPlan/
-    ${CMAKE_SOURCE_DIR}/Visualize/
     ${CMAKE_SOURCE_DIR}/SceneRepresent/
     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/include/
 )
 
 # Add the source files
-file(GLOB MapRepresent_SRC ${CMAKE_SOURCE_DIR}/MapRepresent/*.cpp)
+file(GLOB AgentRepresent_SRC ${CMAKE_SOURCE_DIR}/AgentRepresent/*.cpp)
 file(GLOB PathPlan_SRC ${CMAKE_SOURCE_DIR}/PathPlan/*.cpp)
-file(GLOB Visualize_SRC ${CMAKE_SOURCE_DIR}/Visualize/*.cpp)
 file(GLOB SceneRepresent_SRC ${CMAKE_SOURCE_DIR}/SceneRepresent/*.cpp)
 set(
     JSONCPP_SRC
@@ -38,9 +36,8 @@ set(
 add_executable(
     PathPlanningTest
     testmain.cpp
-    ${MapRepresent_SRC}
+    ${AgentRepresent_SRC}
     ${PathPlan_SRC}
-    ${Visualize_SRC}
     ${SceneRepresent_SRC}
     ${JSONCPP_SRC}
 )
