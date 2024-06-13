@@ -37,13 +37,14 @@ class MoveObjectTask : public AgentTask
 {
 public:
     MoveObjectTask() {}
-    MoveObjectTask(std::string objectName, Eigen::Vector2d goalPosition, double goalRotation)
-        : objectName(objectName), goalPosition(goalPosition), goalRotation(goalRotation) {}
+    MoveObjectTask(std::string agentName, std::string objectName, Eigen::Vector2d goalPosition, double goalRotation)
+        : agentName(agentName), objectName(objectName), goalPosition(goalPosition), goalRotation(goalRotation) {}
     MoveObjectTask(std::string filePath)
     {
         // Read task from file
     }
 public:
+    std::string agentName;
     std::string objectName;
     Eigen::Vector2d goalPosition;
     double goalRotation;

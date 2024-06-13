@@ -4,7 +4,7 @@
 #include "AgentRepresent.hpp"
 #include "SceneRepresent.hpp"
 #include "PathPlan.hpp"
-// #include "Visualize.hpp"
+#include "Visualize.hpp"
 
 #define SCENE_FILE_PATH "/home/dillon/SceneCoupling/PathPlanning/Data/aius3011.scn"
 

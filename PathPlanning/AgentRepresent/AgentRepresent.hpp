@@ -13,14 +13,17 @@
 class Agent
 {
 public: 
-    Agent(std::string name, std::string sceneFile);
+    Agent(){}
+    Agent(std::string name, Scene* scene);
+    void attachObject(std::string objectName);
+    void detachObject(std::string objectName);
 
 public:
     std::string name;
-    SceneObject *thisObject;
-    std::vector<SceneObject *> attachedObjects;
+    SceneObject thisObject;
+    std::vector<SceneObject> attachedObjects;
     std::vector<Eigen::Matrix3d> relativeTransforms;
-    Scene scene;
+    Scene* scene;
     //PathPlan planner;
 };
 
