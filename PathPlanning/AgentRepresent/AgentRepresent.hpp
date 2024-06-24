@@ -15,7 +15,7 @@ class Agent
 public: 
     Agent(){}
     Agent(std::string name, Scene* scene);
-    void attachObject(std::string objectName);
+    void attachObject(std::string objectName, Eigen::Vector3d agentPose, Eigen::Vector3d objectPose);
     void detachObject(std::string objectName);
 
 public:
@@ -23,6 +23,8 @@ public:
     SceneObject thisObject;
     std::vector<SceneObject> attachedObjects;
     std::vector<Eigen::Matrix3d> relativeTransforms;
+    std::vector<Eigen::Vector2d> relativePositions;
+    std::vector<double> relativeRotations;
     Scene* scene;
     //PathPlan planner;
 };

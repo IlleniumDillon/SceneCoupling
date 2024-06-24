@@ -29,10 +29,12 @@ public:
     Agent agent;
     std::vector<SceneObject> staticObjects;
     SceneObject agentObject;
-    std::vector<SceneObject> attachedObjects;
-    std::vector<Eigen::Matrix3d> relativeTransforms;
+    // std::vector<SceneObject> attachedObjects;
+    // std::vector<Eigen::Matrix3d> relativeTransforms;
+    // std::vector<Eigen::Vector2d> relativePositions;
+    // std::vector<double> relativeRotations;
 
-private:
+public:
     struct NodeInfo
     {
         double cost = 0;

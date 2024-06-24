@@ -264,11 +264,13 @@ void Planner::configure(Agent agent)
     double gridResolution = agent.scene->resolution;
     /// set objects
     this->staticObjects.clear();
-    this->attachedObjects.clear();
-    this->relativeTransforms.clear();
+    // this->attachedObjects.clear();
+    // this->relativeTransforms.clear();
     this->agentObject = agent.thisObject;
-    this->attachedObjects = agent.attachedObjects;
-    this->relativeTransforms = agent.relativeTransforms;
+    // this->attachedObjects = agent.attachedObjects;
+    // this->relativeTransforms = agent.relativeTransforms;
+    // this->relativePositions = agent.relativePositions;
+    // this->relativeRotations = agent.relativeRotations;
 
     for (auto &object: agent.scene->sceneObjects)
     {
@@ -411,6 +413,11 @@ PlanResult Planner::plan(MoveObjectTask task)
     PlanResult result;
     reset();
 
+    /// step 1: move to any anchor point
+    /// step 2: attach the object
+    /// step 3: move to the goal position
+    /// step 4: detach the object
+
     auto timeEnd = std::chrono::high_resolution_clock::now();
     result.time = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count() * 1e-6;
     return result;
@@ -435,9 +442,19 @@ bool Planner::checkCollision(GridNode *node)
     agentObject.updateGeometry();
     if (__check(agentObject)) return true;
 
-    // for (auto & obj : attachedObjects)
+    // for (int i = 0; i < attachedObjects.size(); i++)
     // {
-    //     /// TODO: implement the collision check
+    //     Eigen::Vector2d deltaPosition = {
+    //         relativePositions[i].x() * cos(node->yaw) - relativePositions[i].y() * sin(node->yaw),
+    //         relativePositions[i].x() * sin(node->yaw) + relativePositions[i].y() * cos(node->yaw)
+    //     };
+    //     attachedObjects[i].center = node->position + deltaPosition;
+    //     attachedObjects[i].rotation = node->yaw + relativeRotations[i];
+    //     attachedObjects[i].needTransform = true;
+    //     attachedObjects[i].updateGeometry();
+
+    //     if (__check(attachedObjects[i])) 
+    //         return true;
     // }
 
     return false;

@@ -46,6 +46,21 @@ void visualize(Scene scene, Agent agent, PlanResult result, double fps)
             scene[agent.name]->rotation = action.yaw;
             scene[agent.name]->needTransform = true;
             scene[agent.name]->updateGeometry();
+
+            // for (int i = 0; i < agent.attachedObjects.size(); i++)
+            // {
+            //     Eigen::Vector2d deltaPosition = {
+            //         agent.relativePositions[i].x() * cos(action.yaw) - agent.relativePositions[i].y() * sin(action.yaw),
+            //         agent.relativePositions[i].x() * sin(action.yaw) + agent.relativePositions[i].y() * cos(action.yaw) 
+            //     };
+            //     Eigen::Vector2d objectPosition = action.position + deltaPosition;
+            //     double objectYaw = action.yaw + agent.relativeRotations[i];
+            //     scene[agent.attachedObjects[i].name]->center = objectPosition;
+            //     scene[agent.attachedObjects[i].name]->rotation = objectYaw;
+            //     scene[agent.attachedObjects[i].name]->needTransform = true;
+            //     scene[agent.attachedObjects[i].name]->updateGeometry();
+            //     std::cout << "[" << objectPosition.x() << "," << objectPosition.y() << "," << objectYaw << "]" << std::endl;
+            // }
         }
 
 

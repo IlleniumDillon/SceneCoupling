@@ -6,6 +6,6 @@
 #include "PathPlan.hpp"
 #include "Visualize.hpp"
 
-#define SCENE_FILE_PATH "/home/dillon/SceneCoupling/PathPlanning/Data/aius3011.scn"
+#define SCENE_FILE_PATH "/home/dillon/SceneCoupling/PathPlanning/Data/attachTest.scn"
 
 #endif // TESTMAIN_HPP
